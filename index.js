@@ -27,3 +27,26 @@ app.get('/biodata', async (req, res) => {
     }
 });
 
+app.post('/biodata', async (req, res) => {
+    try {
+        const { id, nama, nim, kelas } = req.body;
+
+        if (!id || !nama || !nim || !kelas) {
+            return res.status(400).json({ error: "Kolom id, nama, nim, dan kelas harus diisi!" });
+        }
+
+        const queryText = 'INSERT INTO biodata (id, nama, nim, kelas) VALUES ($1, $2, $3, $4) RETURNING *';
+        const values = [id, nama, nim, kelas];
+
+        const result = await pool.query(queryText, values);
+        
+        res.status(201).json({
+            message: "Berhasil menambahkan biodata baru",
+            data: result.rows[0]
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Terjadi kesalahan saat menambahkan data" });
+    }
+});
+
