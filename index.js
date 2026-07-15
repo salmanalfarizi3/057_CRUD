@@ -50,3 +50,31 @@ app.post('/biodata', async (req, res) => {
     }
 });
 
+app.put('/biodata/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nama, nim, kelas } = req.body;
+
+        if (!nama || !nim || !kelas) {
+            return res.status(400).json({ error: "Kolom nama, nim, dan kelas harus diisi!" });
+        }
+
+        const queryText = 'UPDATE biodata SET nama = $1, nim = $2, kelas = $3 WHERE id = $4 RETURNING *';
+        const values = [nama, nim, kelas, id];
+
+        const result = await pool.query(queryText, values);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: `Biodata dengan ID ${id} tidak ditemukan` });
+        }
+
+        res.status(200).json({
+            message: "Berhasil memperbarui data biodata",
+            data: result.rows[0]
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Terjadi kesalahan saat memperbarui data" });
+    }
+});
+
